@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>나에게 맞는 직무 유형 테스트</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --font-sans: "Plus Jakarta Sans", "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      html,
+      body {
+        font-family: var(--font-sans);
+        background-color: #f6f3ff;
+        color: #1e1633;
+        -webkit-font-smoothing: antialiased;
+        word-break: keep-all;
+        overflow-x: clip;
+      }
+
+      button {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+
+      @keyframes choiceBounce {
+        0% {
+          transform: scale(1);
+        }
+        25% {
+          transform: scale(0.96);
+        }
+        65% {
+          transform: scale(1.035);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .animate-choice-bounce {
+        animation: choiceBounce 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-up {
+        animation: fadeSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    </style>
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <!-- 상단 바 -->
+    <header class="sticky top-0 z-30 w-full border-b border-[#EAE2FF] bg-white/85 backdrop-blur-md">
+      <div class="max-w-5xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between gap-3">
+        <button
+          id="brandBtn"
+          type="button"
+          class="text-sm sm:text-base font-bold tracking-tight text-[#1E1633] hover:text-violet-700 transition-colors truncate rounded-lg px-1"
+        >
+          나에게 맞는 직무 유형 테스트
+        </button>
+        <span
+          id="headerStatus"
+          class="text-xs sm:text-sm font-medium text-[#6B6185] whitespace-nowrap shrink-0 tabular-nums"
+        >
+          진로 탐색
+        </span>
+      </div>
+    </header>
+
+    <!-- 메인 화면 영역 -->
+    <main
+      id="appRoot"
+      class="flex-1 flex items-start sm:items-center justify-center px-3.5 sm:px-6 pt-5 pb-[max(2rem,env(safe-area-inset-bottom))] sm:py-12"
+    ></main>
+
+    <script>
+      const ROLE_PROFILES = {
+        plan: {
+          key: 'plan',
+          title: '기획형 PM',
+          nickname: '흩어진 아이디어를 한 줄로 꿰는 팀의 나침반',
+          description:
+            '조별과제나 동아리 프로젝트를 할 때 전체 그림을 먼저 그리고, 팀원들이 헤매지 않게 방향과 일정을 잡는 데 강점이 있어요. 사람들이 진짜 불편해하는 지점을 찾아내 문제를 정의하고, 서로 다른 의견을 조율해 하나의 결과물로 묶어낼 때 가장 큰 재미를 느낍니다. 코딩이나 디자인 툴 숙련도보다 사용자의 마음을 읽고 소통하는 힘이 중요한 기획 직무와 잘 어울려요.',
+          recommendations: [
+            {
+              title: '경영학개론 · 마케팅원론 수강하기',
+              note: '교내 교양이나 복수·부전공으로 고객의 수요와 시장 구조를 읽는 기본기를 다질 수 있어요.',
+            },
+            {
+              title: '컴퓨터활용능력 1급 또는 GTQ 1급',
+              note: '기획서 문서 정리와 간단한 화면 시안 소통에 바로 쓰이는 실용적인 기본 자격증이에요.',
+            },
+            {
+              title: '서비스 기획 · 창업 동아리 프로젝트',
+              note: '작은 아이디어라도 기획서부터 발표까지 끝까지 완주해 본 경험이 가장 든든한 무기가 됩니다.',
+            },
+          ],
+        },
+        dev: {
+          key: 'dev',
+          title: '구현형 개발자',
+          nickname: '머릿속 상상을 돌아가는 결과물로 만드는 해결사',
+          description:
+            '일상에서 반복되는 불편함을 보면 “이거 자동으로 편하게 바꿀 수 없을까?” 하고 원리를 파고드는 성향이에요. 막연한 말보다 논리적인 순서와 명확한 기준이 있을 때 집중력이 올라가고, 막히던 문제를 끝까지 해결해 정상 작동하는 순간에 큰 성취감을 느낍니다. 기술을 도구 삼아 아이디어를 실제 서비스로 구현하는 개발 직무에서 잠재력이 빛나요.',
+          recommendations: [
+            {
+              title: '프로그래밍 기초 (Python / JavaScript)',
+              note: '교내 기초 코딩 교양이나 온라인 입문 강의로 변수, 조건문, 반복문부터 가볍게 익혀 보세요.',
+            },
+            {
+              title: '정보처리기사 (또는 SQLD)',
+              note: '전공과 무관하게 IT 기초 구조와 데이터베이스 개념을 체계적으로 정리하기 좋은 대표 자격증이에요.',
+            },
+            {
+              title: '웹 프로그래밍 입문 · 토이 프로젝트',
+              note: '직접 만든 간단한 소개 페이지나 동아리 출석부 웹사이트를 완성해 보면 적성을 빠르게 확인할 수 있어요.',
+            },
+          ],
+        },
+        design: {
+          key: 'design',
+          title: '공감형 디자이너',
+          nickname: '사용자의 시선과 기분까지 설계하는 감각 메이커',
+          description:
+            '같은 정보라도 보기 좋게 정돈되어 있거나 쓰기 편할 때 만족감을 크게 느끼는 편이에요. 발표 자료의 여백과 색감을 맞추고, 동아리 포스터나 안내문 하나를 만들어도 “보는 사람이 헷갈리지 않을까?”를 먼저 떠올립니다. 심미적인 감각과 사용자에 대한 세심한 배려를 화면과 경험으로 풀어내는 UX/UI 디자인 직무와 잘 맞아요.',
+          recommendations: [
+            {
+              title: '시각디자인 기초 · 인간컴퓨터상호작용(HCI)',
+              note: '예쁜 화면을 넘어 사람이 직관적으로 이해하고 쓰기 편한 구조의 원리를 배울 수 있어요.',
+            },
+            {
+              title: 'GTQ (그래픽기술자격) 1급 · 웹디자인기능사',
+              note: '디자인 툴 활용 능력을 객관적으로 증명하고 시각 작업의 기초 감각을 다지기에 좋아요.',
+            },
+            {
+              title: '피그마(Figma) UI/UX 실무 스터디',
+              note: '자주 쓰는 앱 화면을 따라 그려 보며 버튼 배치와 여백 감각을 익히는 것부터 시작해 보세요.',
+            },
+          ],
+        },
+        data: {
+          key: 'data',
+          title: '탐구형 데이터 분석가',
+          nickname: '감보다 숫자와 근거로 정답을 찾아내는 탐정',
+          description:
+            '“다들 좋다고 하는데 진짜일까?” 하고 근거와 수치를 확인해야 마음이 놓이는 스타일이에요. 알바 매출 흐름이나 설문 결과를 정리하면서 숨은 패턴을 발견할 때 즐거움을 느끼고, 막연한 추측 대신 객관적인 자료로 팀을 설득하는 데 강합니다. 흩어진 기록 속에서 의미 있는 인사이트를 뽑아내는 데이터 분석 직무가 잘 어울려요.',
+          recommendations: [
+            {
+              title: '통계학 입문 · 데이터 리터러시 교양',
+              note: '어려운 수학보다 평균의 함정, 상관관계, 표본 해석 등 숫자를 올바르게 읽는 눈을 길러 줘요.',
+            },
+            {
+              title: 'ADsP (데이터분석 준전문가) · SQLD',
+              note: '비전공자 대학생도 3~4주 정도 준비해 충분히 도전할 수 있는 대표적인 입문 데이터 자격증이에요.',
+            },
+            {
+              title: '엑셀 데이터 분석 · 태블로(Tableau) 시각화',
+              note: '공공데이터포털의 관심 주제를 받아 피벗 테이블과 차트로 정리해 보는 연습이 큰 도움이 돼요.',
+            },
+          ],
+        },
+      };
+
+      const QUESTIONS = [
+        {
+          id: 1,
+          situation: '조별과제 첫 모임',
+          prompt: '새 학기 첫 조별과제 팀이 꾸려졌다! 가장 먼저 손이 가는 일은?',
+          options: [
+            { label: '전체 일정표를 짜고 팀원 각자 잘할 수 있는 역할 나누기', role: 'plan' },
+            { label: '주제에 필요한 자료나 제작 도구를 찾아 바로 시험 삼아 만들어 보기', role: 'dev' },
+          ],
+        },
+        {
+          id: 2,
+          situation: '동아리 신입생 모집',
+          prompt: '동아리 홍보 콘텐츠를 준비할 때, 내가 더 오래 신경 쓰는 쪽은?',
+          options: [
+            { label: '눈길을 끄는 포스터 색감과 읽기 편한 카드뉴스 레이아웃 잡기', role: 'design' },
+            { label: '작년 홍보 글 조회수와 요일·시간대별 지원자 수 변화 확인하기', role: 'data' },
+          ],
+        },
+        {
+          id: 3,
+          situation: '카페 아르바이트',
+          prompt: '아르바이트하는 카페에서 신메뉴를 출시한다. 내 머릿속에 먼저 떠오르는 생각은?',
+          options: [
+            { label: '“손님들이 어떤 날, 어떤 기분으로 이 음료를 고를까?” 홍보 문구 구상', role: 'plan' },
+            { label: '“지난달 가장 잘 팔린 메뉴와 시간대별 주문 건수가 어떻게 됐지?”', role: 'data' },
+          ],
+        },
+        {
+          id: 4,
+          situation: '전공 팀 발표 준비',
+          prompt: '발표 마감 하루 전, 최종 자료를 다듬을 때 내가 맡으면 든든한 작업은?',
+          options: [
+            { label: '논리 흐름에 빈틈이 없는지 점검하고 시연 화면이 안 꼬이게 테스트하기', role: 'dev' },
+            { label: '슬라이드 여백, 글씨 크기, 도표 색감을 통일해 한눈에 들어오게 정리하기', role: 'design' },
+          ],
+        },
+        {
+          id: 5,
+          situation: '학과 축제 부스 운영',
+          prompt: '학과 축제에서 체험 부스를 열게 됐다. 내가 제일 신나서 맡을 역할은?',
+          options: [
+            { label: '방문객 동선과 대기 줄, 시간대별 운영 규칙을 짜는 총괄 진행', role: 'plan' },
+            { label: '부스 간판, 안내 표지판, 손님이 사진 찍고 싶어지는 공간 꾸미기', role: 'design' },
+          ],
+        },
+        {
+          id: 6,
+          situation: '동아리 물품·재고 관리',
+          prompt: '매번 종이에 적던 물품 재고 관리가 번거롭다. 내가 택하고 싶은 해결 방법은?',
+          options: [
+            { label: '숫자만 입력하면 자동으로 남은 수량이 계산되는 시트나 폼 만들어 두기', role: 'dev' },
+            { label: '지난 몇 달치 기록을 모아 어떤 물품이 언제 많이 빠지는지 패턴 파악하기', role: 'data' },
+          ],
+        },
+        {
+          id: 7,
+          situation: '조별과제 회의 중 의견 충돌',
+          prompt: '팀원들 사이에서 두 가지 아이디어가 팽팽하게 맞설 때, 나의 반응은?',
+          options: [
+            { label: '각 아이디어가 마감일 안에 실제로 구현 가능한지 현실적인 조건을 따져 본다', role: 'dev' },
+            { label: '양쪽이 진짜 원하는 핵심을 정리해 모두가 납득할 절충안과 방향을 제안한다', role: 'plan' },
+          ],
+        },
+        {
+          id: 8,
+          situation: '아르바이트 매장 개선',
+          prompt: '매장 키오스크나 메뉴판 앞에서 손님들이 자꾸 머뭇거리며 헷갈려 한다면?',
+          options: [
+            { label: '손님들이 어느 메뉴 단계에서 주문을 가장 많이 멈추는지 기록부터 확인한다', role: 'data' },
+            { label: '버튼 크기, 글자 대비, 사진 배치를 더 직관적으로 바꿀 아이디어를 떠올린다', role: 'design' },
+          ],
+        },
+        {
+          id: 9,
+          situation: '시험 대비 교양 스터디',
+          prompt: '친구들과 시험 대비 스터디를 함께 운영할 때, 나에게 더 자연스러운 모습은?',
+          options: [
+            { label: '기출문제를 유형별로 분류해 출제 빈도가 높은 단원부터 표로 정리해 온다', role: 'data' },
+            { label: '시험 날짜에 맞춰 주차별 목표 분량을 정하고 스터디 진행 속도를 이끈다', role: 'plan' },
+          ],
+        },
+        {
+          id: 10,
+          situation: '대학생 아이디어 공모전',
+          prompt: '팀을 꾸려 공모전에 나가기로 했다! 내가 가장 몰입해서 파고드는 파트는?',
+          options: [
+            { label: '심사위원이 보자마자 이해하고 매력 느끼도록 서비스 화면 시안과 비주얼 완성하기', role: 'design' },
+            { label: '아이디어가 실제로 돌아가는 프로토타입이나 기술적인 구현 구조 설계하기', role: 'dev' },
+          ],
+        },
+        {
+          id: 11,
+          situation: '아르바이트 후임 인수인계',
+          prompt: '새로 들어온 알바 후임에게 일하는 순서를 알려줘야 한다. 내가 준비하는 방식은?',
+          options: [
+            { label: '사진과 번호를 넣은 한눈에 들어오는 시각 매뉴얼을 깔끔하게 만들어 준다', role: 'design' },
+            { label: '“바쁠 땐 이 순서부터 처리하면 돼” 하고 상황별 우선순위와 흐름을 짚어 준다', role: 'plan' },
+          ],
+        },
+        {
+          id: 12,
+          situation: '동아리 한 학기 마무리',
+          prompt: '한 학기 활동을 마치고 다음 기수에게 인수인계 자료를 남길 때, 내가 꼭 챙기는 것은?',
+          options: [
+            { label: '행사별 참여 인원과 만족도 설문 수치를 정리해 잘된 이유를 근거로 남긴다', role: 'data' },
+            { label: '반복해서 쓰던 신청 폼이나 정산 자동화 틀을 다음 기수가 바로 쓰게 정리해 둔다', role: 'dev' },
+          ],
+        },
+      ];
+
+      let step = 'start';
+      let currentIndex = 0;
+      let answers = [];
+      let isLocked = false;
+
+      const appRoot = document.getElementById('appRoot');
+      const headerStatus = document.getElementById('headerStatus');
+      const brandBtn = document.getElementById('brandBtn');
+
+      brandBtn.addEventListener('click', restartQuiz);
+
+      function calculateResult() {
+        const scores = { plan: 0, dev: 0, design: 0, data: 0 };
+        answers.forEach((role) => {
+          scores[role] += 1;
+        });
+
+        const maxScore = Math.max(...Object.values(scores));
+        const tied = Object.keys(scores).filter((r) => scores[r] === maxScore);
+        let winner = tied[0];
+
+        if (tied.length > 1) {
+          const headToHead = { plan: 0, dev: 0, design: 0, data: 0 };
+          QUESTIONS.forEach((q, idx) => {
+            const rA = q.options[0].role;
+            const rB = q.options[1].role;
+            if (answers[idx] && tied.includes(rA) && tied.includes(rB)) {
+              headToHead[answers[idx]] += 1;
+            }
+          });
+          const maxH2H = Math.max(...tied.map((r) => headToHead[r]));
+          const afterH2H = tied.filter((r) => headToHead[r] === maxH2H);
+
+          if (afterH2H.length === 1) {
+            winner = afterH2H[0];
+          } else {
+            for (let i = answers.length - 1; i >= 0; i--) {
+              if (afterH2H.includes(answers[i])) {
+                winner = answers[i];
+                break;
+              }
+            }
+          }
+        }
+
+        const orderedRoles = Object.keys(scores).sort((a, b) => {
+          if (a === winner) return -1;
+          if (b === winner) return 1;
+          return scores[b] - scores[a];
+        });
+
+        return { primary: ROLE_PROFILES[winner], scores, orderedRoles };
+      }
+
+      function updateHeader() {
+        if (step === 'start') {
+          headerStatus.textContent = '진로 탐색';
+          headerStatus.className = 'text-xs sm:text-sm font-medium text-[#6B6185] whitespace-nowrap shrink-0';
+        } else if (step === 'question') {
+          headerStatus.textContent = `${currentIndex + 1} / ${QUESTIONS.length}`;
+          headerStatus.className = 'text-xs sm:text-sm font-semibold text-violet-700 whitespace-nowrap shrink-0 tabular-nums';
+        } else {
+          headerStatus.textContent = '분석 완료';
+          headerStatus.className = 'text-xs sm:text-sm font-medium text-[#6B6185] whitespace-nowrap shrink-0';
+        }
+      }
+
+      function renderStart() {
+        updateHeader();
+        appRoot.innerHTML = `
+          <section class="w-full max-w-4xl mx-auto animate-fade-up">
+            <div class="bg-white rounded-3xl border border-[#E6DEFF] shadow-[0_16px_44px_-16px_rgba(109,40,217,0.14)] p-6 sm:p-10 lg:p-12 space-y-6">
+              <div class="space-y-3.5">
+                <p class="text-xs sm:text-sm font-medium text-violet-700">
+                  대학생 2~4학년 맞춤 · 12개 일상 질문 · 약 2분 소요
+                </p>
+                <h1 class="text-[1.75rem] sm:text-4xl font-bold text-[#1E1633] leading-[1.25] tracking-tight">
+                  나에게 맞는 직무 유형 테스트
+                </h1>
+                <p class="text-[14.5px] sm:text-base text-[#52486B] leading-[1.7] max-w-2xl">
+                  아직 직무가 낯설어도 괜찮아요. 조별과제, 동아리, 아르바이트처럼 익숙한 대학생활 장면 12가지를 고르다 보면 내 일하는 스타일과 딱 맞는 직무, 지금 준비하면 좋은 과목·자격증까지 한눈에 확인할 수 있어요.
+                </p>
+              </div>
+
+              <div class="pt-5 border-t border-[#F0EBFF] space-y-5">
+                <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs sm:text-sm text-[#5B5273]">
+                  <span class="font-semibold text-[#1E1633]">분석 유형</span>
+                  <span class="text-violet-300">/</span>
+                  <span>기획형 PM · 구현형 개발자 · 공감형 디자이너 · 탐구형 데이터 분석가</span>
+                </div>
+
+                <button
+                  id="startBtn"
+                  type="button"
+                  class="w-full sm:w-auto min-h-[54px] px-8 py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-semibold text-base inline-flex items-center justify-center gap-2 shadow-[0_10px_24px_-8px_rgba(124,58,237,0.55)] transition"
+                >
+                  <span>시작하기</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        `;
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+          answers = [];
+          currentIndex = 0;
+          step = 'question';
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      function renderQuestion() {
+        updateHeader();
+        isLocked = false;
+        const q = QUESTIONS[currentIndex];
+        const total = QUESTIONS.length;
+        const progress = ((currentIndex + 1) / total) * 100;
+        const prevChoice = answers[currentIndex];
+
+        appRoot.innerHTML = `
+          <section class="w-full max-w-2xl mx-auto animate-fade-up">
+            <div class="mb-6 sm:mb-8 space-y-3">
+              <div class="flex items-center justify-between gap-4">
+                <button
+                  id="backBtn"
+                  type="button"
+                  class="min-h-[44px] px-2 -ml-2 inline-flex items-center gap-1.5 text-sm font-medium text-[#5B5273] hover:text-violet-700 rounded-xl"
+                >
+                  <span aria-hidden="true">←</span>
+                  <span>${currentIndex === 0 ? '처음으로' : '이전 질문'}</span>
+                </button>
+                <div class="text-sm sm:text-base font-bold text-violet-700 tabular-nums">
+                  ${currentIndex + 1}/${total}
+                </div>
+              </div>
+              <div class="w-full h-2.5 bg-[#E8E0FF] rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-violet-600 rounded-full transition-all duration-300"
+                  style="width: ${progress}%"
+                ></div>
+              </div>
+            </div>
+
+            <div class="space-y-5 sm:space-y-7">
+              <div class="space-y-2 px-1">
+                <p class="text-xs sm:text-sm font-semibold text-violet-700">
+                  상황 ${currentIndex + 1} · ${q.situation}
+                </p>
+                <h2 class="text-[1.35rem] sm:text-[1.75rem] font-bold text-[#1E1633] leading-[1.38] tracking-tight">
+                  ${q.prompt}
+                </h2>
+              </div>
+
+              <div class="grid grid-cols-1 gap-3.5 sm:gap-4">
+                ${q.options
+                  .map((opt, idx) => {
+                    const letter = idx === 0 ? 'A' : 'B';
+                    const isSelected = prevChoice === opt.role;
+                    return `
+                      <button
+                        type="button"
+                        data-idx="${idx}"
+                        data-role="${opt.role}"
+                        class="choice-btn w-full min-h-[82px] sm:min-h-[96px] text-left rounded-3xl p-4 sm:p-6 border-2 transition-colors flex items-center gap-3.5 sm:gap-5 select-none ${
+                          isSelected
+                            ? 'bg-[#F3EEFF] border-violet-600 shadow-[0_12px_28px_-12px_rgba(124,58,237,0.35)]'
+                            : 'bg-white border-[#E6DEFF] hover:border-violet-400 active:bg-[#F8F5FF] shadow-[0_10px_28px_-14px_rgba(109,40,217,0.12)]'
+                        }"
+                      >
+                        <span
+                          class="choice-badge w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 inline-flex items-center justify-center font-bold text-sm transition-colors ${
+                            isSelected ? 'bg-violet-600 text-white' : 'bg-[#F3EEFF] text-violet-700'
+                          }"
+                        >
+                          ${isSelected ? '✓' : letter}
+                        </span>
+                        <span class="text-[15px] sm:text-[1.0625rem] font-medium text-[#1E1633] leading-[1.52]">
+                          ${opt.label}
+                        </span>
+                      </button>
+                    `;
+                  })
+                  .join('')}
+              </div>
+            </div>
+          </section>
+        `;
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+          if (isLocked) return;
+          if (currentIndex > 0) {
+            currentIndex -= 1;
+          } else {
+            step = 'start';
+          }
+          render();
+        });
+
+        document.querySelectorAll('.choice-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (isLocked) return;
+            isLocked = true;
+
+            const role = btn.getAttribute('data-role');
+            btn.classList.remove('bg-white', 'border-[#E6DEFF]');
+            btn.classList.add(
+              'bg-[#F3EEFF]',
+              'border-violet-600',
+              'animate-choice-bounce',
+              'shadow-[0_12px_28px_-12px_rgba(124,58,237,0.35)]'
+            );
+            const badge = btn.querySelector('.choice-badge');
+            badge.classList.remove('bg-[#F3EEFF]', 'text-violet-700');
+            badge.classList.add('bg-violet-600', 'text-white');
+            badge.textContent = '✓';
+
+            answers[currentIndex] = role;
+
+            setTimeout(() => {
+              if (currentIndex + 1 < QUESTIONS.length) {
+                currentIndex += 1;
+              } else {
+                step = 'result';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+              render();
+            }, 340);
+          });
+        });
+      }
+
+      function renderResult() {
+        updateHeader();
+        const { primary, scores, orderedRoles } = calculateResult();
+
+        appRoot.innerHTML = `
+          <section class="w-full max-w-4xl mx-auto animate-fade-up">
+            <div class="bg-white rounded-3xl border border-[#E6DEFF] shadow-[0_18px_48px_-16px_rgba(109,40,217,0.16)] p-5 sm:p-10 space-y-7 sm:space-y-8">
+              <div class="space-y-3">
+                <p class="text-xs sm:text-sm font-semibold text-violet-700">
+                  나와 가장 잘 어울리는 직무 유형
+                </p>
+                <h1 class="text-[1.75rem] sm:text-4xl font-bold text-[#1E1633] tracking-tight">
+                  ${primary.title}
+                </h1>
+                <p class="text-base sm:text-lg font-semibold text-violet-700">
+                  “${primary.nickname}”
+                </p>
+                <p class="text-[15px] sm:text-base text-[#4B4263] leading-[1.72] pt-1">
+                  ${primary.description}
+                </p>
+              </div>
+
+              <div class="pt-7 border-t border-[#EFEAFF] space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                  <h2 class="text-lg sm:text-xl font-bold text-[#1E1633]">
+                    지금 준비하면 좋은 자격증·과목 3가지
+                  </h2>
+                  <span class="text-xs sm:text-sm text-[#6B6185]">
+                    전공과 상관없이 대학생 때 가볍게 시작하기 좋아요
+                  </span>
+                </div>
+
+                <ol class="divide-y divide-[#F2EDFF]">
+                  ${primary.recommendations
+                    .map(
+                      (item, idx) => `
+                        <li class="py-4 first:pt-1 last:pb-1 flex items-start gap-4">
+                          <span class="text-base sm:text-lg font-bold text-violet-600 tabular-nums shrink-0 pt-0.5">
+                            0${idx + 1}.
+                          </span>
+                          <div class="space-y-1">
+                            <h3 class="text-[15px] sm:text-base font-bold text-[#1E1633]">
+                              ${item.title}
+                            </h3>
+                            <p class="text-sm text-[#5B5273] leading-[1.6]">${item.note}</p>
+                          </div>
+                        </li>
+                      `
+                    )
+                    .join('')}
+                </ol>
+              </div>
+
+              <div class="pt-7 border-t border-[#EFEAFF] space-y-4">
+                <h2 class="text-base sm:text-lg font-bold text-[#1E1633]">
+                  내 일하는 스타일 분포
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3.5">
+                  ${orderedRoles
+                    .map((key) => {
+                      const prof = ROLE_PROFILES[key];
+                      const score = scores[key];
+                      const pct = Math.round((score / 6) * 100);
+                      const isWinner = key === primary.key;
+                      return `
+                        <div class="space-y-1.5">
+                          <div class="flex items-center justify-between text-sm">
+                            <span class="${isWinner ? 'font-bold text-violet-700' : 'font-medium text-[#4B4263]'}">
+                              ${prof.title}
+                            </span>
+                            <span class="tabular-nums text-xs sm:text-sm ${isWinner ? 'font-bold text-violet-700' : 'font-medium text-[#6B6185]'}">
+                              ${score} / 6회 선택
+                            </span>
+                          </div>
+                          <div class="w-full h-2 bg-[#F2EDFF] rounded-full overflow-hidden">
+                            <div
+                              class="h-full rounded-full ${isWinner ? 'bg-violet-600' : 'bg-violet-300'}"
+                              style="width: ${pct}%"
+                            ></div>
+                          </div>
+                        </div>
+                      `;
+                    })
+                    .join('')}
+                </div>
+              </div>
+
+              <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  id="restartBtn"
+                  type="button"
+                  class="flex-1 min-h-[54px] px-6 py-3.5 rounded-2xl bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-semibold text-base inline-flex items-center justify-center gap-2 shadow-[0_10px_24px_-8px_rgba(124,58,237,0.5)] transition"
+                >
+                  <span>다시 하기</span>
+                </button>
+                <button
+                  id="copyBtn"
+                  type="button"
+                  class="min-h-[54px] px-6 py-3.5 rounded-2xl bg-[#F5F1FF] hover:bg-[#ECE4FF] active:scale-[0.98] text-violet-800 font-semibold text-sm sm:text-base inline-flex items-center justify-center gap-2 transition"
+                >
+                  <span>결과 요약 복사</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        `;
+
+        document.getElementById('restartBtn').addEventListener('click', restartQuiz);
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.addEventListener('click', async () => {
+          const text = `[나에게 맞는 직무 유형 테스트]\n내 유형: ${primary.title}\n"${primary.nickname}"\n\n추천 준비: ${primary.recommendations
+            .map((r) => r.title)
+            .join(', ')}`;
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+            }
+            copyBtn.textContent = '결과를 복사했어요';
+            setTimeout(() => {
+              copyBtn.textContent = '결과 요약 복사';
+            }, 2000);
+          } catch (_) {}
+        });
+      }
+
+      function restartQuiz() {
+        answers = [];
+        currentIndex = 0;
+        step = 'start';
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function render() {
+        if (step === 'start') renderStart();
+        else if (step === 'question') renderQuestion();
+        else renderResult();
+      }
+
+      render();
+    </script>
+  </body>
+</html>
